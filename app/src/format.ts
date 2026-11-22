@@ -1,7 +1,13 @@
+import { Address } from '@ton/core';
+
 const NANO = 1_000_000_000n;
 
-// Formats nanotons as TON with up to `digits` decimals: "1.25", "0.3", "12".
-export function formatTon(nano: string | bigint, digits = 2): string {
+// The coin of the TON blockchain is called GRAM. Amounts on-chain and in the
+// API are in nano-units (1 GRAM = 10^9), historically called nanotons.
+export const CURRENCY = 'GRAM';
+
+// Formats nano-units with up to `digits` decimals: "1.25", "0.3", "12".
+export function formatGrams(nano: string | bigint, digits = 2): string {
   const value = typeof nano === 'bigint' ? nano : BigInt(nano);
   const whole = value / NANO;
   const frac = value % NANO;
@@ -19,8 +25,8 @@ export function formatTon(nano: string | bigint, digits = 2): string {
   return `${whole}.${fracText}`;
 }
 
-// Parses "1.5" or "1,5" TON into nanotons; null if invalid.
-export function parseTon(text: string): bigint | null {
+// Parses "1.5" or "1,5" GRAM into nano-units; null if invalid.
+export function parseGrams(text: string): bigint | null {
   const match = text
     .trim()
     .replace(',', '.')
@@ -43,4 +49,13 @@ export function shortAddress(address: string): string {
 // UTF-8 size of a text: the contract limits statements in bytes, not characters.
 export function byteLength(text: string): number {
   return new TextEncoder().encode(text).length;
+}
+
+// The same address can be written in several forms (raw, bounceable, testnet...).
+export function sameAddress(a: string, b: string): boolean {
+  try {
+    return Address.parse(a).equals(Address.parse(b));
+  } catch {
+    return false;
+  }
 }

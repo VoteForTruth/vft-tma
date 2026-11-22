@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { TonConnectButton } from '@tonconnect/ui-react';
 import { backButton } from '@tma.js/sdk-react';
+import { UserRound } from 'lucide-react';
 
 import { useI18n } from './i18n';
 import { navigate, useRoute } from './router';
@@ -53,6 +54,14 @@ export default function App({ inTelegram }: { inTelegram: boolean }) {
             className="rounded-md px-2 py-1 text-sm text-hint uppercase"
           >
             {lang === 'ru' ? 'en' : 'ru'}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate({ name: 'profile' })}
+            className="rounded-md p-1 text-link"
+            aria-label={t.profile.title}
+          >
+            <UserRound size={20} />
           </button>
           <TonConnectButton />
         </div>

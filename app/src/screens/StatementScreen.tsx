@@ -1,17 +1,27 @@
 import { useState } from 'react';
 
 import { ApiError, useStatement, type Statement } from '@/api';
+import { CreateSheet, DonateSheet, VoteSheet } from '@/components/ActionSheets';
 import { ResultBar } from '@/components/ResultBar';
 import { StatementCard } from '@/components/StatementCard';
 import { Empty, LoadError, Loading } from '@/components/State';
-import { formatTon, shortAddress } from '@/format';
+import { CURRENCY, formatGrams, shortAddress } from '@/format';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/utils';
+import { shareStatement } from '@/share';
+import { useToast } from '@/components/Toast';
+
+type OpenSheet =
+  | { kind: 'vote' }
+  | { kind: 'donate' }
+  | { kind: 'argument'; pro: boolean }
+  | null;
 
 export function StatementScreen({ address }: { address: string }) {
   const { t } = useI18n();
   const query = useStatement(address);
   const [side, setSide] = useState<'pro' | 'con'>('pro');
+  const [sheet, setSheet] = useState<OpenSheet>(null);
 
   if (query.isPending) return <Loading />;
   if (query.isError) {
@@ -26,7 +36,11 @@ export function StatementScreen({ address }: { address: string }) {
 
   return (
     <div className="space-y-3">
-      <Header statement={statement} />
+      <Header
+        statement={statement}
+        onVote={() => setSheet({ kind: 'vote' })}
+        onDonate={() => setSheet({ kind: 'donate' })}
+      />
 
       <div className="flex gap-1 rounded-xl bg-card p-1">
         {(['pro', 'con'] as const).map((s) => (
@@ -49,17 +63,62 @@ export function StatementScreen({ address }: { address: string }) {
         ))}
       </div>
 
+      <button
+        type="button"
+        onClick={() => setSheet({ kind: 'argument', pro: side === 'pro' })}
+        className={cn(
+          'w-full rounded-2xl bg-card py-3 text-sm font-medium',
+          side === 'pro' ? 'text-pro' : 'text-con',
+        )}
+      >
+        {side === 'pro' ? t.actions.addPro : t.actions.addCon}
+      </button>
+
       {list.length === 0 && <Empty text={t.statement.noArguments} />}
       {list.map((arg) => (
         <StatementCard key={arg.address} statement={arg} showResult={false} />
       ))}
+
+      {sheet?.kind === 'vote' && (
+        <VoteSheet
+          statement={statement.address}
+          onClose={() => setSheet(null)}
+        />
+      )}
+      {sheet?.kind === 'donate' && (
+        <DonateSheet
+          statement={statement.address}
+          onClose={() => setSheet(null)}
+        />
+      )}
+      {sheet?.kind === 'argument' && (
+        <CreateSheet
+          parent={statement.address}
+          pro={sheet.pro}
+          onClose={() => setSheet(null)}
+        />
+      )}
     </div>
   );
 }
 
-function Header({ statement }: { statement: Statement }) {
+function Header({
+  statement,
+  onVote,
+  onDonate,
+}: {
+  statement: Statement;
+  onVote: () => void;
+  onDonate: () => void;
+}) {
   const { t } = useI18n();
+  const toast = useToast();
   const { votes, result } = statement;
+
+  const share = async () => {
+    if (await shareStatement(statement.address, statement.text))
+      toast(t.actions.copied);
+  };
 
   return (
     <div className="rounded-2xl bg-card p-4">
@@ -89,7 +148,9 @@ function Header({ statement }: { statement: Statement }) {
       )}
 
       <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[13px] text-hint">
-        <span>{formatTon(votes.amount)} TON</span>
+        <span>
+          {formatGrams(votes.amount)} {CURRENCY}
+        </span>
         <span>{t.votes.voters(votes.voters)}</span>
         <span>
           {t.statement.author}: {shortAddress(statement.author)}
@@ -100,12 +161,36 @@ function Header({ statement }: { statement: Statement }) {
         <ResultBar pro={result.pro_weight} con={result.con_weight} />
         <div className="flex justify-between text-xs">
           <span className="text-pro">
-            {t.statement.pro} {formatTon(result.pro_amount)} TON
+            {t.statement.pro} {formatGrams(result.pro_amount)} {CURRENCY}
           </span>
           <span className="text-con">
-            {t.statement.con} {formatTon(result.con_amount)} TON
+            {t.statement.con} {formatGrams(result.con_amount)} {CURRENCY}
           </span>
         </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-3 gap-2 text-sm font-medium">
+        <button
+          type="button"
+          onClick={onVote}
+          className="rounded-xl bg-primary py-2.5 text-primary-foreground"
+        >
+          {t.actions.support}
+        </button>
+        <button
+          type="button"
+          onClick={onDonate}
+          className="rounded-xl bg-secondary py-2.5 text-link"
+        >
+          {t.actions.donate}
+        </button>
+        <button
+          type="button"
+          onClick={share}
+          className="rounded-xl bg-secondary py-2.5 text-link"
+        >
+          {t.actions.share}
+        </button>
       </div>
     </div>
   );

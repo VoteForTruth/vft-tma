@@ -1,5 +1,5 @@
 import type { Statement } from '@/api';
-import { formatTon } from '@/format';
+import { CURRENCY, formatGrams } from '@/format';
 import { useI18n } from '@/i18n';
 import { navigate } from '@/router';
 import { ResultBar } from './ResultBar';
@@ -33,7 +33,9 @@ export function StatementCard({
       )}
 
       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[13px] text-hint">
-        <span>{formatTon(votes.amount)} TON</span>
+        <span>
+          {formatGrams(votes.amount)} {CURRENCY}
+        </span>
         <span>{t.votes.voters(votes.voters)}</span>
         {args.pro + args.con > 0 && (
           <span>{t.votes.arguments(args.pro + args.con)}</span>

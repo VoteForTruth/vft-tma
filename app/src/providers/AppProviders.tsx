@@ -2,6 +2,7 @@ import { type PropsWithChildren } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TonConnectUIProvider } from '@tonconnect/ui-react';
 
+import { ToastProvider } from '@/components/Toast';
 import { config } from '@/config';
 import { I18nProvider, type Lang } from '@/i18n';
 
@@ -16,7 +17,9 @@ export function AppProviders({
   return (
     <QueryClientProvider client={queryClient}>
       <TonConnectUIProvider manifestUrl={config.manifestUrl} language={lang}>
-        <I18nProvider initial={lang}>{children}</I18nProvider>
+        <I18nProvider initial={lang}>
+          <ToastProvider>{children}</ToastProvider>
+        </I18nProvider>
       </TonConnectUIProvider>
     </QueryClientProvider>
   );
