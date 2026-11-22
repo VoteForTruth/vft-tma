@@ -9,10 +9,26 @@ import { useI18n } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { langName } from '@/lang';
 
+const ALL_LANGS_KEY = 'vft:feed-all-langs';
+
 export function Feed() {
   const { t, lang } = useI18n();
   const [sort, setSort] = useState<FeedSort>('weight');
-  const [allLangs, setAllLangs] = useState(false);
+  const [allLangs, setAllLangsState] = useState(() => {
+    try {
+      return localStorage.getItem(ALL_LANGS_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const setAllLangs = (all: boolean) => {
+    setAllLangsState(all);
+    try {
+      localStorage.setItem(ALL_LANGS_KEY, all ? '1' : '0');
+    } catch {
+      // storage may be unavailable; the choice then lasts for the session
+    }
+  };
   const [asking, setAsking] = useState(false);
   const feed = useFeed(sort, allLangs ? null : lang);
 
@@ -49,14 +65,24 @@ export function Feed() {
         ))}
       </div>
 
-      <div className="flex justify-end px-1 text-[13px]">
-        <button
-          type="button"
-          onClick={() => setAllLangs(!allLangs)}
-          className="text-link"
-        >
-          {allLangs ? t.feed.onlyMyLang(langName(lang, lang)) : t.feed.allLangs}
-        </button>
+      {/* which topics are shown: in the interface language or in all; the
+          selected option is highlighted, like the sort tabs */}
+      <div className="flex justify-end">
+        <div className="flex gap-1 rounded-lg bg-card p-0.5 text-[13px]">
+          {[false, true].map((all) => (
+            <button
+              key={String(all)}
+              type="button"
+              onClick={() => setAllLangs(all)}
+              className={cn(
+                'rounded-md px-2.5 py-1',
+                allLangs === all ? 'bg-border text-foreground' : 'text-hint',
+              )}
+            >
+              {all ? t.feed.allLangs : langName(lang, lang)}
+            </button>
+          ))}
+        </div>
       </div>
 
       {feed.isPending && <Loading />}

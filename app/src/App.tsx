@@ -5,6 +5,7 @@ import { UserRound } from 'lucide-react';
 
 import { PendingResolver } from './components/Pending';
 import { useI18n } from './i18n';
+import { cn } from './lib/utils';
 import { navigate, useRoute } from './router';
 import { Feed } from './screens/Feed';
 import { Profile } from './screens/Profile';
@@ -77,13 +78,22 @@ export default function App({ inTelegram }: { inTelegram: boolean }) {
           </button>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setLang(lang === 'ru' ? 'en' : 'ru')}
-            className="rounded-md px-2 py-1 text-sm text-hint uppercase"
-          >
-            {lang === 'ru' ? 'en' : 'ru'}
-          </button>
+          {/* interface language: the current one is highlighted */}
+          <div className="flex rounded-md bg-card p-0.5 text-xs uppercase">
+            {(['ru', 'en'] as const).map((l) => (
+              <button
+                key={l}
+                type="button"
+                onClick={() => setLang(l)}
+                className={cn(
+                  'rounded px-1.5 py-0.5',
+                  lang === l ? 'bg-border text-foreground' : 'text-hint',
+                )}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
           <button
             type="button"
             onClick={() => navigate({ name: 'profile' })}

@@ -10,7 +10,6 @@ export const en: Messages = {
     empty: 'No questions yet',
     ask: 'Ask a question',
     allLangs: 'All languages',
-    onlyMyLang: (name) => `Only: ${name}`,
   },
   statement: {
     pro: 'Pro',

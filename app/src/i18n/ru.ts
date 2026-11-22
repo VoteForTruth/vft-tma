@@ -8,7 +8,6 @@ export const ru = {
     empty: 'Пока нет ни одного вопроса',
     ask: 'Задать вопрос',
     allLangs: 'Все языки',
-    onlyMyLang: (name: string) => `Только: ${name}`,
   },
   statement: {
     pro: 'За',
