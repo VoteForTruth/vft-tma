@@ -18,6 +18,7 @@ import {
 } from '@/tx';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { addPendingStatement, markDeleting } from '@/pending';
+import { detectLang, langName, LANGS } from '@/lang';
 import { inputClass, PrimaryButton, Sheet } from './Sheet';
 import { useToast } from './Toast';
 
@@ -167,11 +168,14 @@ export function CreateSheet({
   pro: boolean;
   onClose: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, lang: uiLang } = useI18n();
   const actions = useVftActions();
   const { busy, submit } = useSubmit(onClose);
   const [text, setText] = useState('');
   const [url, setUrl] = useState('');
+  // guessed while typing until the author picks a language
+  const [chosenLang, setChosenLang] = useState<string | null>(null);
+  const lang = chosenLang ?? detectLang(text, uiLang);
 
   const textBytes = byteLength(text.trim());
   const urlBytes = byteLength(url.trim());
@@ -183,7 +187,7 @@ export function CreateSheet({
     parent === null ? t.create.root : pro ? t.create.pro : t.create.con;
 
   const publish = () => {
-    const data = { statement: text.trim(), url: url.trim() || null };
+    const data = { statement: text.trim(), url: url.trim() || null, lang };
     return parent === null
       ? actions.createRoot(data)
       : actions.createArgument(parent, pro, data);
@@ -213,6 +217,24 @@ export function CreateSheet({
         {textBytes > MAX_STATEMENT_BYTES ? `${t.create.tooLong} · ` : ''}
         {t.create.bytes(textBytes, MAX_STATEMENT_BYTES)}
       </p>
+
+      <label className="mt-1 flex items-center gap-2 text-[13px] text-hint">
+        {t.create.lang}:
+        <select
+          value={lang}
+          onChange={(e) => setChosenLang(e.target.value)}
+          className="rounded-lg border border-border bg-secondary px-2 py-1 text-foreground"
+        >
+          {[...new Set([lang, ...LANGS])].map((code) => (
+            <option key={code} value={code}>
+              {langName(code, uiLang)}
+            </option>
+          ))}
+        </select>
+        {chosenLang === null && text.trim() !== '' && (
+          <span>{t.create.langAuto}</span>
+        )}
+      </label>
 
       <input
         className={cn(inputClass, 'mt-2')}

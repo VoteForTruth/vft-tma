@@ -10,7 +10,7 @@ const wallet = Address.parse(
   '0QDYVkbXA-Iix_5RcZpa2RSFRnU_U5ik1GA9pP-RpytyST7z',
 );
 const master = Address.parse(
-  'kQD8W1gEgzOT3CFO2XFe5DLIVxWWTzdalBzE1d-4jQBCT0IF',
+  'kQBrGKeeNbqmG_YrRXjsWcZtwmScMCNuaEs43_HcTkN2Qq9k',
 );
 const root = Address.parse('kQC-MCQhctLfNy4pUxT6kpeugXtaO3ONJ-XazF-ptjHfuEQ5');
 const vote = Address.parse('EQDFq5TVdTtciR7pHb6WHe7dfQkZz2dIZf43FOHhurAzlTdB');
@@ -43,8 +43,13 @@ describe('message bodies', () => {
     expect(s.loadCoins()).toBe(500_000_000n);
   });
 
-  it('encodes a new argument with an optional url', () => {
-    const data = { $: 'VftData' as const, statement: 'Аргумент за', url: null };
+  it('encodes a new argument with an optional url and the language', () => {
+    const data = {
+      $: 'VftData' as const,
+      statement: 'Аргумент за',
+      url: null,
+      lang: 0x7275n, // "ru"
+    };
     const s = VftStatement.createCellOfNewChildStatement({
       data,
       pro: true,
@@ -52,6 +57,7 @@ describe('message bodies', () => {
     expect(s.loadUint(32)).toBe(0x56f40002);
     expect(s.loadStringRefTail()).toBe('Аргумент за');
     expect(s.loadBit()).toBe(false); // no url
+    expect(s.loadUint(16)).toBe(0x7275); // lang
     expect(s.loadBit()).toBe(true); // pro
   });
 

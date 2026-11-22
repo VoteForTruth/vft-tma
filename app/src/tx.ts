@@ -12,6 +12,7 @@ import { VftMaster } from '@wrappers/VftMaster.gen';
 import { VftStatement } from '@wrappers/VftStatement.gen';
 import { VftVote } from '@wrappers/VftVote.gen';
 import { config } from './config';
+import { langToUint16 } from './lang';
 
 // Values attached to messages, in nanotons. The contracts return everything
 // that is not needed: the change of a deploy, the excess gas of a vote.
@@ -26,6 +27,7 @@ export const MAX_URL_BYTES = 256;
 export interface StatementData {
   statement: string;
   url: string | null;
+  lang: string; // ISO 639-1, required by the contract
 }
 
 export type TxResult = 'sent' | 'cancelled';
@@ -133,5 +135,10 @@ export function useVftActions() {
 }
 
 function vftData(data: StatementData) {
-  return { $: 'VftData' as const, statement: data.statement, url: data.url };
+  return {
+    $: 'VftData' as const,
+    statement: data.statement,
+    url: data.url,
+    lang: langToUint16(data.lang),
+  };
 }

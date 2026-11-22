@@ -7,12 +7,14 @@ import { StatementCard } from '@/components/StatementCard';
 import { Empty, LoadError, Loading } from '@/components/State';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/utils';
+import { langName } from '@/lang';
 
 export function Feed() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [sort, setSort] = useState<FeedSort>('weight');
+  const [allLangs, setAllLangs] = useState(false);
   const [asking, setAsking] = useState(false);
-  const feed = useFeed(sort);
+  const feed = useFeed(sort, allLangs ? null : lang);
 
   const tabs: { id: FeedSort; label: string }[] = [
     { id: 'weight', label: t.feed.important },
@@ -45,6 +47,16 @@ export function Feed() {
             {tab.label}
           </button>
         ))}
+      </div>
+
+      <div className="flex justify-end px-1 text-[13px]">
+        <button
+          type="button"
+          onClick={() => setAllLangs(!allLangs)}
+          className="text-link"
+        >
+          {allLangs ? t.feed.onlyMyLang(langName(lang, lang)) : t.feed.allLangs}
+        </button>
       </div>
 
       {feed.isPending && <Loading />}

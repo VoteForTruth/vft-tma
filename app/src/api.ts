@@ -30,6 +30,7 @@ export interface Statement {
   author: string;
   text: string;
   url: string | null;
+  lang: string; // ISO 639-1 of the text
   created_at: string;
   votes: Votes;
   donations: string;
@@ -91,12 +92,13 @@ async function get<T>(path: string): Promise<T> {
 // after the user's own transactions.
 const REFRESH_MS = 5000;
 
-export function useFeed(sort: FeedSort) {
+// `lang`: only topics in this language; null — all languages.
+export function useFeed(sort: FeedSort, lang: string | null) {
   return useQuery({
-    queryKey: ['feed', sort],
+    queryKey: ['feed', sort, lang],
     queryFn: () =>
       get<{ total: number; statements: Statement[] }>(
-        `/statements?sort=${sort}&limit=100`,
+        `/statements?sort=${sort}&limit=100${lang ? `&lang=${lang}` : ''}`,
       ),
     refetchInterval: REFRESH_MS,
   });

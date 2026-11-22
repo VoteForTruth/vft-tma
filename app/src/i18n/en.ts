@@ -9,6 +9,8 @@ export const en: Messages = {
     active: 'Active',
     empty: 'No questions yet',
     ask: 'Ask a question',
+    allLangs: 'All languages',
+    onlyMyLang: (name) => `Only: ${name}`,
   },
   statement: {
     pro: 'Pro',
@@ -73,6 +75,8 @@ export const en: Messages = {
     archiveTip:
       'Tip: save the source to web.archive.org or archive.today and paste the archive link — it is harder to block and its content will not change.',
     bytes: (n, max) => `${n} / ${max} bytes`,
+    lang: 'Language',
+    langAuto: 'detected from the text',
     tooLong: 'The text is too long',
     urlTooLong: 'The link is too long',
     cost: 'Publishing costs 0.1 GRAM: 0.05 stays in the contract, the rest comes back.',

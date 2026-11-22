@@ -7,6 +7,8 @@ export const ru = {
     active: 'Активные',
     empty: 'Пока нет ни одного вопроса',
     ask: 'Задать вопрос',
+    allLangs: 'Все языки',
+    onlyMyLang: (name: string) => `Только: ${name}`,
   },
   statement: {
     pro: 'За',
@@ -73,6 +75,8 @@ export const ru = {
     archiveTip:
       'Совет: сохраните источник в web.archive.org или archive.today и вставьте архивную ссылку — её сложнее заблокировать, и содержимое не изменится.',
     bytes: (n: number, max: number) => `${n} / ${max} байт`,
+    lang: 'Язык',
+    langAuto: 'определён по тексту',
     tooLong: 'Слишком длинный текст',
     urlTooLong: 'Слишком длинная ссылка',
     cost: 'Публикация стоит 0.1 GRAM: 0.05 остаётся в контракте, остальное вернётся.',

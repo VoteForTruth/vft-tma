@@ -14,7 +14,7 @@ export function StatementCard({
   statement: Statement;
   showResult: boolean;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { votes, arguments: args, result } = statement;
   const concentrated = votes.voters > 3 && votes.top3_share >= 0.8;
   const deleting = useDeleting().has(statement.address);
@@ -33,7 +33,14 @@ export function StatementCard({
       {deleting && (
         <p className="mb-1 text-xs text-destructive">{t.pending.deleting}</p>
       )}
-      <p className="text-[15px] leading-snug break-words">{statement.text}</p>
+      <p className="text-[15px] leading-snug break-words">
+        {statement.lang && statement.lang !== lang && (
+          <span className="mr-1.5 rounded bg-secondary px-1 py-0.5 align-middle text-[11px] text-hint uppercase">
+            {statement.lang}
+          </span>
+        )}
+        {statement.text}
+      </p>
 
       {showResult && args.pro + args.con > 0 && (
         <div className="mt-3">
