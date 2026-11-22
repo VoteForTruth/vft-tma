@@ -16,12 +16,7 @@ export function AppProviders({
 }: PropsWithChildren<{ lang: Lang }>) {
   return (
     <QueryClientProvider client={queryClient}>
-      <TonConnectUIProvider
-        manifestUrl={config.manifestUrl}
-        language={lang}
-        // the app shows its own "confirm in the wallet" state and result toast
-        actionsConfiguration={{ modals: [], notifications: [] }}
-      >
+      <TonConnectUIProvider manifestUrl={config.manifestUrl} language={lang}>
         <I18nProvider initial={lang}>
           <ToastProvider>{children}</ToastProvider>
         </I18nProvider>

@@ -130,8 +130,7 @@ export function VoteSheet({
 
       <div className="mt-4 space-y-2">
         <PrimaryButton
-          busy={busy}
-          disabled={!valid}
+          disabled={!valid || busy}
           onClick={() =>
             submit(() =>
               mode === 'add'
@@ -220,8 +219,7 @@ export function CreateSheet({
       <p className="mt-3 text-[13px] text-hint">{t.create.cost}</p>
       <div className="mt-4">
         <PrimaryButton
-          busy={busy}
-          disabled={!valid}
+          disabled={!valid || busy}
           onClick={() => submit(publish)}
         >
           {t.create.publish}
@@ -255,8 +253,7 @@ export function DonateSheet({
       <p className="mt-2 text-[13px] text-hint">{t.donate.hint}</p>
       <div className="mt-4">
         <PrimaryButton
-          busy={busy}
-          disabled={amount === null || amount <= 0n}
+          disabled={amount === null || amount <= 0n || busy}
           onClick={() => submit(() => actions.donate(statement, amount!))}
         >
           {t.donate.send}

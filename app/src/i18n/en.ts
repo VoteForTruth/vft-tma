@@ -50,7 +50,6 @@ export const en: Messages = {
     sent: 'Transaction sent, the data will update in a few seconds',
     failed: 'Could not send the transaction',
     copied: 'Link copied',
-    confirmInWallet: 'Confirm in your wallet…',
     invalidAmount: 'Enter an amount, e.g. 1.5',
   },
   vote: {
