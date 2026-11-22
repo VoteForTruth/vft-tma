@@ -1,5 +1,7 @@
 import { useEffect, type PropsWithChildren } from 'react';
 
+import { useI18n } from '@/i18n';
+
 // A bottom sheet: the usual pattern for actions in mobile and Telegram apps.
 export function Sheet({
   title,
@@ -28,19 +30,26 @@ export function Sheet({
   );
 }
 
+// While `busy`, the wallet is waiting for the user's confirmation.
 export function PrimaryButton({
   disabled,
+  busy,
   onClick,
   children,
-}: PropsWithChildren<{ disabled?: boolean; onClick: () => void }>) {
+}: PropsWithChildren<{
+  disabled?: boolean;
+  busy?: boolean;
+  onClick: () => void;
+}>) {
+  const { t } = useI18n();
   return (
     <button
       type="button"
-      disabled={disabled}
+      disabled={disabled || busy}
       onClick={onClick}
       className="w-full rounded-xl bg-primary py-3 font-medium text-primary-foreground disabled:opacity-40"
     >
-      {children}
+      {busy ? t.actions.confirmInWallet : children}
     </button>
   );
 }
