@@ -41,7 +41,7 @@ export default function App({ inTelegram }: { inTelegram: boolean }) {
           <button
             type="button"
             onClick={() => navigate({ name: 'feed' })}
-            className="text-[17px] font-semibold"
+            className="truncate text-[17px] font-semibold"
           >
             {t.appName}
           </button>
