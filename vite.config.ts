@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
@@ -29,47 +29,83 @@ function devTonConnectManifest(): Plugin {
   };
 }
 
-export default defineConfig({
-  root: 'app',
-  envDir: projectRoot,
-  envPrefix: ['VITE_', 'TONCENTER_'],
-  plugins: [react(), tailwindcss(), devTonConnectManifest()],
-  resolve: {
-    alias: {
-      '@wrappers': path.resolve(projectRoot, 'wrappers-ts'),
-      '@': path.resolve(projectRoot, 'app/src'),
+// Production: tonconnect-manifest.json for the public address of the app
+// (VITE_APP_URL), written next to the build so wallets can fetch it.
+function buildTonConnectManifest(appUrl: string): Plugin {
+  return {
+    name: 'build-tonconnect-manifest',
+    apply: 'build',
+    generateBundle() {
+      if (!appUrl) throw new Error('VITE_APP_URL is required for a build');
+      this.emitFile({
+        type: 'asset',
+        fileName: 'tonconnect-manifest.json',
+        source: JSON.stringify(
+          {
+            url: appUrl,
+            name: 'Vote For Truth',
+            iconUrl: `${appUrl}/icon-180.png`,
+          },
+          null,
+          2,
+        ),
+      });
     },
-  },
-  build: {
-    emptyOutDir: true,
-    outDir: '../dist',
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (!id.includes('node_modules')) return undefined;
-          if (id.includes('/react/') || id.includes('/react-dom/'))
-            return 'react';
-          if (id.includes('/@ton/ton/') || id.includes('/@ton/core/'))
-            return 'ton-sdk';
-          if (id.includes('/@tonconnect/')) return 'tonconnect';
-          return undefined;
+  };
+}
+
+export default defineConfig(({ command, mode }) => {
+  const env = loadEnv(mode, projectRoot, 'VITE_');
+  return {
+    root: 'app',
+    // production lives at https://votefortruth.org/app/ (like /app of Ether and
+    // Aida); development and tunnels serve it from the root
+    base: command === 'build' ? '/app/' : '/',
+    envDir: projectRoot,
+    envPrefix: ['VITE_', 'TONCENTER_'],
+    plugins: [
+      react(),
+      tailwindcss(),
+      devTonConnectManifest(),
+      buildTonConnectManifest(env.VITE_APP_URL ?? ''),
+    ],
+    resolve: {
+      alias: {
+        '@wrappers': path.resolve(projectRoot, 'wrappers-ts'),
+        '@': path.resolve(projectRoot, 'app/src'),
+      },
+    },
+    build: {
+      emptyOutDir: true,
+      outDir: '../dist',
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return undefined;
+            if (id.includes('/react/') || id.includes('/react-dom/'))
+              return 'react';
+            if (id.includes('/@ton/ton/') || id.includes('/@ton/core/'))
+              return 'ton-sdk';
+            if (id.includes('/@tonconnect/')) return 'tonconnect';
+            return undefined;
+          },
         },
       },
     },
-  },
-  server: {
-    fs: {
-      allow: ['.', path.resolve(projectRoot, 'wrappers-ts')],
-    },
-    port: 5173,
-    // a quick tunnel to test inside Telegram (cloudflared --url http://127.0.0.1:5173)
-    allowedHosts: ['.trycloudflare.com'],
-    // the indexer API through the same origin, so one tunnel is enough
-    proxy: {
-      '/api': {
-        target: 'http://127.0.0.1:8080',
-        rewrite: (p) => p.replace(/^\/api/, ''),
+    server: {
+      fs: {
+        allow: ['.', path.resolve(projectRoot, 'wrappers-ts')],
+      },
+      port: 5173,
+      // a quick tunnel to test inside Telegram (cloudflared --url http://127.0.0.1:5173)
+      allowedHosts: ['.trycloudflare.com'],
+      // the indexer API through the same origin, so one tunnel is enough
+      proxy: {
+        '/api': {
+          target: 'http://127.0.0.1:8080',
+          rewrite: (p) => p.replace(/^\/api/, ''),
+        },
       },
     },
-  },
+  };
 });
