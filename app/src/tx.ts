@@ -108,6 +108,20 @@ export function useVftActions() {
       return send(vote, CONTROL_VALUE, body);
     },
 
+    // replaces the source link of the author's statement (null removes it);
+    // the text never changes, the indexer keeps the public history of links
+    setUrl: (statement: string, url: string | null) =>
+      send(statement, CONTROL_VALUE, VftStatement.createCellOfSetUrl({ url })),
+
+    // deletes the author's statement while it has no arguments; the contract
+    // checks both, and its storage reserve comes back to the author
+    deleteStatement: (statement: string) =>
+      send(
+        statement,
+        CONTROL_VALUE,
+        VftStatement.createCellOfDeleteStatement({}),
+      ),
+
     // the same as sending GRAM with the comment "donate" from any wallet
     donate: (statement: string, amount: bigint) =>
       send(

@@ -3,11 +3,35 @@ import { TonConnectButton } from '@tonconnect/ui-react';
 import { backButton } from '@tma.js/sdk-react';
 import { UserRound } from 'lucide-react';
 
+import { PendingResolver } from './components/Pending';
 import { useI18n } from './i18n';
 import { navigate, useRoute } from './router';
 import { Feed } from './screens/Feed';
 import { Profile } from './screens/Profile';
 import { StatementScreen } from './screens/StatementScreen';
+
+// The V logo, the same as on the landing and the bot avatar.
+function Logo() {
+  return (
+    <span className="logo-mark grid size-7 shrink-0 place-items-center rounded-lg">
+      <svg
+        viewBox="0 0 24 24"
+        className="size-5"
+        fill="none"
+        stroke="#fff"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
+        <path d="M5 4 12 19 19 4" />
+        <path d="M2.5 4h5" />
+        <path d="M16.5 4h5" />
+        <path d="M9 21h6" stroke="#0e0c18" />
+      </svg>
+    </span>
+  );
+}
 
 export default function App({ inTelegram }: { inTelegram: boolean }) {
   const route = useRoute();
@@ -42,9 +66,14 @@ export default function App({ inTelegram }: { inTelegram: boolean }) {
           <button
             type="button"
             onClick={() => navigate({ name: 'feed' })}
-            className="truncate text-[17px] font-semibold"
+            className="flex min-w-0 items-center gap-2 text-[17px] font-semibold"
+            aria-label={t.appName}
           >
-            {t.appName}
+            <Logo />
+            {/* on narrow screens the wallet button needs the room: logo only */}
+            <span className="hidden truncate min-[430px]:inline">
+              Vote For <span className="truth font-extrabold">Truth</span>
+            </span>
           </button>
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -67,6 +96,7 @@ export default function App({ inTelegram }: { inTelegram: boolean }) {
         </div>
       </header>
 
+      <PendingResolver />
       <main>
         {route.name === 'feed' && <Feed />}
         {route.name === 'statement' && (

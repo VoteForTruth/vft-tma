@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { useFeed, type FeedSort } from '@/api';
 import { CreateSheet } from '@/components/ActionSheets';
+import { PendingList } from '@/components/Pending';
 import { StatementCard } from '@/components/StatementCard';
 import { Empty, LoadError, Loading } from '@/components/State';
 import { useI18n } from '@/i18n';
@@ -48,6 +49,7 @@ export function Feed() {
 
       {feed.isPending && <Loading />}
       {feed.isError && <LoadError onRetry={() => feed.refetch()} />}
+      <PendingList parent={null} />
       {feed.data?.statements.length === 0 && <Empty text={t.feed.empty} />}
       {feed.data?.statements.map((s) => (
         <StatementCard key={s.address} statement={s} showResult />

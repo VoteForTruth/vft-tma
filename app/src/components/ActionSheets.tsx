@@ -17,6 +17,7 @@ import {
   type TxResult,
 } from '@/tx';
 import { useTonAddress } from '@tonconnect/ui-react';
+import { addPendingStatement, markDeleting } from '@/pending';
 import { inputClass, PrimaryButton, Sheet } from './Sheet';
 import { useToast } from './Toast';
 
@@ -188,6 +189,13 @@ export function CreateSheet({
       : actions.createArgument(parent, pro, data);
   };
 
+  // until the indexer shows it, the list shows a "publishing" card
+  const publishAndTrack = async () => {
+    const result = await publish();
+    if (result === 'sent') addPendingStatement(parent, pro, text.trim());
+    return result;
+  };
+
   return (
     <Sheet title={title} onClose={onClose}>
       <textarea
@@ -215,15 +223,124 @@ export function CreateSheet({
       {urlBytes > MAX_URL_BYTES && (
         <p className="mt-1 text-xs text-destructive">{t.create.urlTooLong}</p>
       )}
+      <p className="mt-1 text-xs text-hint">{t.create.archiveTip}</p>
 
       <p className="mt-3 text-[13px] text-hint">{t.create.cost}</p>
+      <p className="mt-2 rounded-xl bg-secondary p-3 text-[13px]">
+        ⚠ {t.create.warning}
+      </p>
       <div className="mt-4">
         <PrimaryButton
           disabled={!valid || busy}
-          onClick={() => submit(publish)}
+          onClick={() => submit(publishAndTrack)}
         >
           {t.create.publish}
         </PrimaryButton>
+      </div>
+    </Sheet>
+  );
+}
+
+// The author replaces the source link of a statement; the text never changes.
+export function UrlSheet({
+  statement,
+  current,
+  onClose,
+}: {
+  statement: string;
+  current: string | null;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+  const actions = useVftActions();
+  const { busy, submit } = useSubmit(onClose);
+  const [url, setUrl] = useState(current ?? '');
+
+  const value = url.trim();
+  const bytes = byteLength(value);
+  const wellFormed = value === '' || /^https?:\/\/\S+$/i.test(value);
+  const valid =
+    wellFormed && bytes <= MAX_URL_BYTES && value !== (current ?? '');
+
+  return (
+    <Sheet title={t.link.title} onClose={onClose}>
+      <p className="mb-3 text-sm">{t.link.hint}</p>
+      <input
+        className={inputClass}
+        inputMode="url"
+        placeholder={t.link.placeholder}
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+      />
+      {!wellFormed && (
+        <p className="mt-1 text-xs text-destructive">{t.link.invalid}</p>
+      )}
+      {bytes > MAX_URL_BYTES && (
+        <p className="mt-1 text-xs text-destructive">{t.create.urlTooLong}</p>
+      )}
+      <p className="mt-1 text-xs text-hint">{t.create.archiveTip}</p>
+      <p className="mt-3 rounded-xl bg-secondary p-3 text-[13px]">
+        ⚠ {t.link.public}
+      </p>
+      <div className="mt-4">
+        <PrimaryButton
+          disabled={!valid || busy}
+          onClick={() =>
+            submit(() => actions.setUrl(statement, value === '' ? null : value))
+          }
+        >
+          {value === '' ? t.link.removeLink : t.link.save}
+        </PrimaryButton>
+      </div>
+    </Sheet>
+  );
+}
+
+// The author deletes a statement nobody has answered yet.
+export function DeleteSheet({
+  statement,
+  onClose,
+  onDeleted,
+}: {
+  statement: string;
+  onClose: () => void;
+  onDeleted: () => void;
+}) {
+  const { t } = useI18n();
+  const actions = useVftActions();
+  const { busy, submit } = useSubmit(onClose);
+
+  const remove = async () => {
+    const result = await actions.deleteStatement(statement);
+    if (result === 'sent') {
+      markDeleting(statement);
+      onDeleted();
+    }
+    return result;
+  };
+
+  return (
+    <Sheet title={t.remove.title} onClose={onClose}>
+      <p className="text-sm">{t.remove.hint}</p>
+      <p className="mt-2 rounded-xl bg-secondary p-3 text-[13px]">
+        ⚠ {t.remove.history}
+      </p>
+      <div className="mt-4 space-y-2">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => submit(remove)}
+          className="w-full rounded-xl bg-destructive py-3 font-medium text-white disabled:opacity-50"
+        >
+          {t.remove.confirm}
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="w-full py-2 text-hint"
+        >
+          {t.actions.cancel}
+        </button>
       </div>
     </Sheet>
   );

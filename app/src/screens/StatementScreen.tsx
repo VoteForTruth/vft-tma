@@ -1,13 +1,28 @@
 import { useState } from 'react';
+import { useTonAddress } from '@tonconnect/ui-react';
 
-import { ApiError, useStatement, type Statement } from '@/api';
-import { CreateSheet, DonateSheet, VoteSheet } from '@/components/ActionSheets';
+import { ApiError, useStatement, type Statement, type UrlChange } from '@/api';
+import {
+  CreateSheet,
+  DeleteSheet,
+  DonateSheet,
+  UrlSheet,
+  VoteSheet,
+} from '@/components/ActionSheets';
+import { PendingList } from '@/components/Pending';
 import { ResultBar } from '@/components/ResultBar';
 import { StatementCard } from '@/components/StatementCard';
 import { Empty, LoadError, Loading } from '@/components/State';
-import { CURRENCY, formatGrams, shortAddress } from '@/format';
+import {
+  CURRENCY,
+  formatDate,
+  formatGrams,
+  sameAddress,
+  shortAddress,
+} from '@/format';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/utils';
+import { navigate } from '@/router';
 import { shareStatement } from '@/share';
 import { useToast } from '@/components/Toast';
 
@@ -15,6 +30,8 @@ type OpenSheet =
   | { kind: 'vote' }
   | { kind: 'donate' }
   | { kind: 'argument'; pro: boolean }
+  | { kind: 'delete' }
+  | { kind: 'url' }
   | null;
 
 export function StatementScreen({ address }: { address: string }) {
@@ -27,11 +44,19 @@ export function StatementScreen({ address }: { address: string }) {
   if (query.isError) {
     const status = query.error instanceof ApiError ? query.error.status : 0;
     if (status === 404) return <Empty text={t.statement.notFound} />;
-    if (status === 410) return <Empty text={t.statement.hidden} />;
+    if (status === 410) {
+      const body = (query.error as ApiError).body as { deleted?: boolean };
+      return (
+        <Empty
+          text={body?.deleted ? t.statement.deleted : t.statement.hidden}
+        />
+      );
+    }
     return <LoadError onRetry={() => query.refetch()} />;
   }
 
-  const { statement, pro, con } = query.data;
+  // url_history may be missing on an older indexer
+  const { statement, pro, con, url_history = [] } = query.data;
   const list = side === 'pro' ? pro : con;
 
   return (
@@ -40,6 +65,9 @@ export function StatementScreen({ address }: { address: string }) {
         statement={statement}
         onVote={() => setSheet({ kind: 'vote' })}
         onDonate={() => setSheet({ kind: 'donate' })}
+        onDelete={() => setSheet({ kind: 'delete' })}
+        onEditUrl={() => setSheet({ kind: 'url' })}
+        urlHistory={url_history}
       />
 
       <div className="flex gap-1 rounded-xl bg-card p-1">
@@ -74,6 +102,7 @@ export function StatementScreen({ address }: { address: string }) {
         {side === 'pro' ? t.actions.addPro : t.actions.addCon}
       </button>
 
+      <PendingList parent={statement.address} pro={side === 'pro'} />
       {list.length === 0 && <Empty text={t.statement.noArguments} />}
       {list.map((arg) => (
         <StatementCard key={arg.address} statement={arg} showResult={false} />
@@ -91,6 +120,26 @@ export function StatementScreen({ address }: { address: string }) {
           onClose={() => setSheet(null)}
         />
       )}
+      {sheet?.kind === 'url' && (
+        <UrlSheet
+          statement={statement.address}
+          current={statement.url}
+          onClose={() => setSheet(null)}
+        />
+      )}
+      {sheet?.kind === 'delete' && (
+        <DeleteSheet
+          statement={statement.address}
+          onClose={() => setSheet(null)}
+          onDeleted={() =>
+            navigate(
+              statement.depth > 0
+                ? { name: 'statement', address: statement.parent }
+                : { name: 'feed' },
+            )
+          }
+        />
+      )}
       {sheet?.kind === 'argument' && (
         <CreateSheet
           parent={statement.address}
@@ -106,13 +155,25 @@ function Header({
   statement,
   onVote,
   onDonate,
+  onDelete,
+  onEditUrl,
+  urlHistory,
 }: {
   statement: Statement;
   onVote: () => void;
   onDonate: () => void;
+  onDelete: () => void;
+  onEditUrl: () => void;
+  urlHistory: UrlChange[];
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const [showHistory, setShowHistory] = useState(false);
   const toast = useToast();
+  const wallet = useTonAddress();
+  // only the author, and only while nobody has answered (the contract checks it too)
+  const isAuthor = !!wallet && sameAddress(statement.author, wallet);
+  const canDelete = isAuthor && statement.deletable;
+  const lastChange = urlHistory[urlHistory.length - 1];
   const { votes, result } = statement;
 
   const share = async () => {
@@ -145,6 +206,39 @@ function Header({
         >
           {t.statement.source}: {statement.url}
         </a>
+      )}
+
+      {statement.url_changed && lastChange && (
+        <div className="mt-1 text-xs text-hint">
+          <button
+            type="button"
+            onClick={() => setShowHistory(!showHistory)}
+            className="underline decoration-dotted underline-offset-2"
+          >
+            {t.link.changed} {formatDate(lastChange.time, lang)}
+          </button>
+          {showHistory && (
+            <ol className="mt-1 space-y-0.5">
+              {urlHistory.map((h) => (
+                <li key={h.time} className="break-all">
+                  {formatDate(h.time, lang)} —{' '}
+                  {h.url ? (
+                    <a
+                      href={h.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-link"
+                    >
+                      {h.url}
+                    </a>
+                  ) : (
+                    t.link.none
+                  )}
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
       )}
 
       <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[13px] text-hint">
@@ -192,6 +286,27 @@ function Header({
           {t.actions.share}
         </button>
       </div>
+
+      {isAuthor && (
+        <div className="mt-2 flex gap-2 text-sm">
+          <button
+            type="button"
+            onClick={onEditUrl}
+            className="flex-1 py-1.5 text-link"
+          >
+            {t.link.edit}
+          </button>
+          {canDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              className="flex-1 py-1.5 text-destructive"
+            >
+              {t.remove.action}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -22,6 +22,7 @@ export const en: Messages = {
     share: 'Share',
     hidden: 'Hidden by moderation',
     notFound: 'Statement not found',
+    deleted: 'The author deleted this statement',
   },
   votes: {
     voters: (n) => `${n} ${n === 1 ? 'voter' : 'voters'}`,
@@ -69,11 +70,45 @@ export const en: Messages = {
     con: 'Con argument',
     text: 'A short thesis',
     url: 'Link to the source (optional)',
+    archiveTip:
+      'Tip: save the source to web.archive.org or archive.today and paste the archive link — it is harder to block and its content will not change.',
     bytes: (n, max) => `${n} / ${max} bytes`,
     tooLong: 'The text is too long',
     urlTooLong: 'The link is too long',
-    cost: 'Publishing costs 0.1 GRAM: 0.05 stays in the contract forever, the rest comes back. The text cannot be edited later.',
+    cost: 'Publishing costs 0.1 GRAM: 0.05 stays in the contract, the rest comes back.',
+    warning:
+      'The text cannot be edited. It can be deleted only while nobody has answered, and even then it stays in the blockchain history.',
     publish: 'Publish',
+  },
+  pending: {
+    publishing: 'Publishing… it will appear in a few seconds',
+    slow: 'Not here yet. Check in your wallet that the transaction was confirmed.',
+    dismiss: 'Dismiss',
+    deleting: 'Deleting…',
+  },
+  link: {
+    edit: 'Change link',
+    title: 'Source link',
+    placeholder: 'https://…',
+    hint: 'For example, if the site was blocked or the article moved. The text of the statement cannot be changed.',
+    public:
+      'Everyone will see the change: previous links stay in the public history.',
+    save: 'Save',
+    removeLink: 'Remove link',
+    changed: 'Link changed',
+    history: 'Link history',
+    none: 'no link',
+    invalid: 'The link must start with http:// or https://',
+  },
+  remove: {
+    action: 'Delete',
+    title: 'Delete the statement?',
+    hint: 'You can delete it while nobody has answered. The 0.05 GRAM reserve comes back to you, and voters can take their money back.',
+    history:
+      'It disappears from the app, but its text stays in the blockchain transaction history forever.',
+    confirm: 'Delete',
+    deletedVote: 'The author deleted this statement — take your vote back',
+    withdraw: 'Withdraw',
   },
   donate: {
     title: 'Donate to the author',

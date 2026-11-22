@@ -52,6 +52,15 @@ export function byteLength(text: string): number {
 }
 
 // The same address can be written in several forms (raw, bounceable, testnet...).
+// A short date in the user's language, e.g. "22 нояб. 2026".
+export function formatDate(iso: string, lang: string): string {
+  return new Date(iso).toLocaleDateString(lang, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
 export function sameAddress(a: string, b: string): boolean {
   try {
     return Address.parse(a).equals(Address.parse(b));

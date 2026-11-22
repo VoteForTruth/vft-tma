@@ -1,27 +1,27 @@
 @import 'tailwindcss';
 
 /*
- * Native Telegram look: colors come from the Telegram theme (--tg-theme-*,
- * bound by the SDK). Outside Telegram (a regular browser during development)
- * the --fallback-* values are used, following the system light/dark scheme.
+ * Brand look, the same as the landing (vft-meta/landing): always dark, violet
+ * accent with gradients and glow; pro is indigo, con is raspberry — neither
+ * matches the brand color, so the app never looks like it takes a side.
+ * The Telegram theme is not used; the Telegram header and background are
+ * painted with --bg (see telegram.ts).
  */
 
 @theme inline {
-  --color-background: var(--tg-theme-bg-color, var(--fallback-bg));
-  --color-foreground: var(--tg-theme-text-color, var(--fallback-text));
-  --color-hint: var(--tg-theme-hint-color, var(--fallback-hint));
-  --color-link: var(--tg-theme-link-color, var(--fallback-link));
-  --color-primary: var(--tg-theme-button-color, var(--fallback-button));
-  --color-primary-foreground: var(--tg-theme-button-text-color, #ffffff);
-  --color-secondary: var(
-    --tg-theme-secondary-bg-color,
-    var(--fallback-secondary)
-  );
-  --color-card: var(--tg-theme-section-bg-color, var(--fallback-section));
-  --color-destructive: var(--tg-theme-destructive-text-color, #e53935);
-  --color-border: color-mix(in srgb, var(--color-hint) 25%, transparent);
-  --color-pro: var(--pro);
-  --color-con: var(--con);
+  --color-background: var(--bg);
+  --color-foreground: #eeeaff;
+  --color-hint: #8f88ad;
+  --color-link: #b8a0ff;
+  --color-primary: #9a6bff;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #0e0c18;
+  --color-card: #141124;
+  --color-destructive: #ff5c7a;
+  --color-border: #241f3a;
+  --color-pro: #6f8dff;
+  --color-con: #e0457b;
+  --color-warn: #e6b35a;
 
   --font-sans:
     -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial,
@@ -29,37 +29,51 @@
 }
 
 :root {
-  --fallback-bg: #ffffff;
-  --fallback-text: #000000;
-  --fallback-hint: #8e8e93;
-  --fallback-link: #2481cc;
-  --fallback-button: #2481cc;
-  --fallback-secondary: #efeff4;
-  --fallback-section: #ffffff;
-  --pro: #31a24c;
-  --con: #e5484d;
-  color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --fallback-bg: #17212b;
-    --fallback-text: #f5f5f5;
-    --fallback-hint: #708499;
-    --fallback-link: #6ab3f3;
-    --fallback-button: #5288c1;
-    --fallback-secondary: #232e3c;
-    --fallback-section: #17212b;
-    --pro: #4cc46a;
-    --con: #f26b6f;
-    color-scheme: dark;
-  }
+  --bg: #07060d;
+  color-scheme: dark;
 }
 
 body {
   margin: 0;
-  background: var(--color-secondary);
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      700px 420px at 90% -10%,
+      rgba(154, 107, 255, 0.2),
+      transparent 60%
+    ),
+    radial-gradient(
+      500px 320px at 0% 30%,
+      rgba(111, 141, 255, 0.07),
+      transparent 60%
+    ),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--color-foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+/* main buttons and the active tab: violet gradient with a glow */
+.bg-primary {
+  background-image: linear-gradient(90deg, #7b3dff, #9a6bff);
+  box-shadow: 0 0 18px rgba(154, 107, 255, 0.4);
+}
+
+/* cards: a thin border that lights up on touch */
+.bg-card {
+  border: 1px solid var(--color-border);
+}
+
+/* "Truth" in the logo */
+.truth {
+  background: linear-gradient(90deg, #d9ccff, #9a6bff 55%, #7a4dff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.logo-mark {
+  background: linear-gradient(135deg, #b48cff, #6d3dff);
+  box-shadow: 0 0 14px rgba(154, 107, 255, 0.6);
 }

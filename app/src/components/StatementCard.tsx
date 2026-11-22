@@ -1,6 +1,8 @@
 import type { Statement } from '@/api';
 import { CURRENCY, formatGrams } from '@/format';
 import { useI18n } from '@/i18n';
+import { cn } from '@/lib/utils';
+import { useDeleting } from '@/pending';
 import { navigate } from '@/router';
 import { ResultBar } from './ResultBar';
 
@@ -15,6 +17,7 @@ export function StatementCard({
   const { t } = useI18n();
   const { votes, arguments: args, result } = statement;
   const concentrated = votes.voters > 3 && votes.top3_share >= 0.8;
+  const deleting = useDeleting().has(statement.address);
 
   return (
     <button
@@ -22,8 +25,14 @@ export function StatementCard({
       onClick={() =>
         navigate({ name: 'statement', address: statement.address })
       }
-      className="w-full rounded-2xl bg-card p-4 text-left active:opacity-70"
+      className={cn(
+        'w-full rounded-2xl bg-card p-4 text-left active:opacity-70',
+        deleting && 'opacity-40',
+      )}
     >
+      {deleting && (
+        <p className="mb-1 text-xs text-destructive">{t.pending.deleting}</p>
+      )}
       <p className="text-[15px] leading-snug break-words">{statement.text}</p>
 
       {showResult && args.pro + args.con > 0 && (
@@ -41,8 +50,8 @@ export function StatementCard({
           <span>{t.votes.arguments(args.pro + args.con)}</span>
         )}
         {concentrated && (
-          <span className="text-con">
-            {t.votes.concentration(votes.top3_share, 3)}
+          <span className="text-warn">
+            ⚠ {t.votes.concentration(votes.top3_share, 3)}
           </span>
         )}
       </div>

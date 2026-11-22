@@ -10,7 +10,7 @@ const wallet = Address.parse(
   '0QDYVkbXA-Iix_5RcZpa2RSFRnU_U5ik1GA9pP-RpytyST7z',
 );
 const master = Address.parse(
-  'kQAtLOtQSvcqzpgpgmRoymv4BN5w5lcgF1VN6Ob0F4J0STiU',
+  'kQD8W1gEgzOT3CFO2XFe5DLIVxWWTzdalBzE1d-4jQBCT0IF',
 );
 const root = Address.parse('kQC-MCQhctLfNy4pUxT6kpeugXtaO3ONJ-XazF-ptjHfuEQ5');
 const vote = Address.parse('EQDFq5TVdTtciR7pHb6WHe7dfQkZz2dIZf43FOHhurAzlTdB');
@@ -64,6 +64,25 @@ describe('message bodies', () => {
     expect(VftVote.createCellOfWithdrawAll({}).beginParse().loadUint(32)).toBe(
       0x56f40008,
     );
+  });
+
+  it('encodes a link change and a link removal', () => {
+    const set = VftStatement.createCellOfSetUrl({
+      url: 'https://mirror.example',
+    }).beginParse();
+    expect(set.loadUint(32)).toBe(0x56f4000a);
+    expect(set.loadMaybeRef()!.beginParse().loadStringTail()).toBe(
+      'https://mirror.example',
+    );
+    const removed = VftStatement.createCellOfSetUrl({ url: null }).beginParse();
+    expect(removed.loadUint(32)).toBe(0x56f4000a);
+    expect(removed.loadBit()).toBe(false);
+  });
+
+  it('encodes a deletion', () => {
+    const s = VftStatement.createCellOfDeleteStatement({}).beginParse();
+    expect(s.loadUint(32)).toBe(0x56f40009);
+    expect(s.remainingBits).toBe(0);
   });
 
   it('encodes the donate comment like a wallet does', () => {

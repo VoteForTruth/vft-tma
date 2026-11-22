@@ -37,12 +37,23 @@ export interface Statement {
   result: Result;
   activity_24h?: number;
   hidden?: { reason: string | null };
+  // no argument was ever created under it, so the author may delete it
+  deletable: boolean;
+  // the author replaced the source link; the history is in the detail
+  url_changed: boolean;
+}
+
+// One entry of the public history of a source link, oldest first.
+export interface UrlChange {
+  url: string | null;
+  time: string;
 }
 
 export interface StatementDetail {
   statement: Statement;
   pro: Statement[];
   con: Statement[];
+  url_history: UrlChange[];
 }
 
 export interface WalletVote {
@@ -54,6 +65,8 @@ export interface WalletVote {
   amount: string;
   weight: string;
   since: string;
+  // the author deleted the statement: no text, only the money to withdraw
+  deleted?: boolean;
 }
 
 export type FeedSort = 'weight' | 'new' | 'active';
